@@ -1,0 +1,24 @@
+function wrap {
+    for i in `seq 0 $1`; do
+        echo "$2$i$3"
+    done
+}
+
+N=1000 # Change this accordingly to number of files, that you want to feed to tesseract or export it as a script parameter.
+
+# Uncomment this line if, you're rerunning the script
+rm fra.pffmtable  fra.shapetable fra.traineddata fra.unicharset unicharset font_properties fra.inttemp fra.normproto *.tr *.txt
+
+for i in `seq 0 $N`; do
+    tesseract fra.hand.exp$i.jpg fra.hand.exp$i nobatch box.train
+done
+unicharset_extractor `wrap $N "fra.hand.exp" ".box"`
+echo "hand 0 0 0 0 0" > font_properties
+mftraining -F font_properties -U unicharset -O fra.unicharset `wrap $N "fra.hand.exp" ".tr"`
+cntraining `wrap $N "fra.hand.exp" ".tr"`
+# rename all files created by mftraing en cntraining, add the prefix pol.:
+    mv inttemp fra.inttemp
+    mv normproto fra.normproto
+    mv pffmtable fra.pffmtable
+    mv shapetable fra.shapetable
+combine_tessdata fra.
